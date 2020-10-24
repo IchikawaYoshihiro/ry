@@ -28,7 +28,7 @@ class Redirect
 
     private static function createTiny(): string
     {
-        $latest = app('db')->select("SELECT id FROM redirects limit 1");
+        $latest = app('db')->select("SELECT id FROM redirects ORDER BY id DESC LIMIT 1");
         $id = empty($latest) ? 1 : $latest[0]->id;
         return dechex($id.random_int(100, 999));
     }
