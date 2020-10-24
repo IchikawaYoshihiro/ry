@@ -20,6 +20,13 @@ $router->get('/', function () {
 });
 
 $router->get('/api/redirects/create', function (Request $request) {
+    $validator = Validator::make($request->all(), [
+        'url' => 'required|url|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response('URLが正しくありません', 422);
+    }
     return Redirect::create($request->url);
 });
 

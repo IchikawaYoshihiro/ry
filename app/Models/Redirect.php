@@ -6,7 +6,7 @@ use Error;
 
 class Redirect
 {
-    public static function create($original)
+    public static function create($original): string
     {
         $data = [
             'original' => $original,
