@@ -13,9 +13,14 @@ class HomeController extends Controller
 
     public function redirect(string $tiny)
     {
-        $original_url = Redirect::getOriginalUrlByTinyUrl($tiny);
-        return $original_url
-            ? redirect($original_url)
-            : response('指定されたURLが見つかりませんでした。', 404);
+        $redirect = Redirect::getRedirectByTinyUrl($tiny);
+        if ($redirect) {
+            $redirect->addAccessLog([
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ua' => $_SERVER['HTTP_USER_AGENT'] ?? null
+            ]);
+            return redirect($redirect->original_url);
+        }
+        return response('指定されたURLが見つかりませんでした。', 404);
     }
 }
