@@ -3,33 +3,39 @@
 namespace App\Models;
 
 use Error;
+use Illuminate\Database\Eloquent\Model;
 
-class Redirect
+class Redirect extends Model
 {
-    public static function create($original): string
-    {
-        $data = [
-            'original' => $original,
-            'tiny' => self::createTiny(),
-        ];
-        $result = app('db')->table('redirects')->insert($data);
+    protected $fillable = ['rand', 'original_url'];
 
-        if ($result) {
-            return config('app.url').'/'.$data['tiny'];
-        }
-        throw new Error('短縮URLの生成に失敗しました');
+    public static function createFromOriginalUrl($original_url): string
+    {
+        $redirect = parent::firstOrCreate(['original_url' => $original_url], ['rand' => self::createRand()]);
+        return $redirect->tiny_url;
     }
 
-    public static function getOriginal($tiny):? string
+    /**
+     * id+乱数(3桁)
+     */
+    public function getTinyUrlAttribute()
     {
-        $result = app('db')->table('redirects')->select('original')->where('tiny', $tiny)->first();
-        return $result->original ?? null;
+        return config('app.url').'/'.$this->id.$this->rand;
     }
 
-    private static function createTiny(): string
+    public static function getOriginalUrlByTinyUrl($tiny_url):? string
     {
-        $latest = app('db')->select("SELECT id FROM redirects ORDER BY id DESC LIMIT 1");
-        $id = empty($latest) ? 1 : $latest[0]->id;
-        return dechex($id.random_int(100, 999));
+        $id = substr($tiny_url, 0, strlen($tiny_url)-3);
+        $rand = substr($tiny_url, -3, 3);
+
+        return self::where('rand', $rand)->find($id)->original_url ?? null;
+    }
+
+    /**
+     * 000 - zzz
+     */
+    private static function createRand()
+    {
+        return str_pad(base_convert(random_int(0, 46656), 10, 36), 3, '0', STR_PAD_LEFT);
     }
 }

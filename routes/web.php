@@ -15,24 +15,8 @@ use Illuminate\Http\Request;
 | and give it the Closure to call when that URI is requested.
 |
 */
-$router->get('/', function () {
-    return '短縮URLサービス';
-});
+$router->get('/api/redirects/create', 'ApiController@create');
+$router->get('/api/redirects/create_many', 'ApiController@createMany');
 
-$router->get('/api/redirects/create', function (Request $request) {
-    $validator = Validator::make($request->all(), [
-        'url' => 'required|url|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response('URLが正しくありません', 422);
-    }
-    return Redirect::create($request->url);
-});
-
-$router->get('/{tiny:.+}', function ($tiny) {
-    $original = Redirect::getOriginal($tiny);
-    return $original
-        ? redirect($original)
-        : response('指定されたURLが見つかりませんでした。', 404);
-});
+$router->get('/', 'HomeController@index');
+$router->get('/{tiny:.+}', 'HomeController@redirect');
